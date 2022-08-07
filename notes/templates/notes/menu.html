@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'notes/css/menu_styles.css' %}" type="text/css" />
+    <div class="controls">
+        <h1 class="center">Your Notebooks for {{ group }}:</h1>
+        <a class="center space" href="/accounts/logout/">
+            <button>Logout</button>
+        </a>
+        <a class="center space" href="/notes/groups/">
+            <button>Back</button>
+        </a>
+        <div class="center space">
+            <button onclick="deleteGroup();">Delete Group</button>
+        </div>
+        <div class="center space">
+            <button onclick="newNotebook();">New Notebook</button>
+        </div>
+    </div>
+
+    <div class="scroller">
+        {% if notes %}
+            {% for note in notes %}
+                <a class="center space" href="/notes/notepad/?name={{ note.name }}&group={{ group }}">{{ note.name }}</a>
+            {% endfor %}
+        {% else %}
+            <p class="center">No Notebooks</p>
+        {% endif %}
+    </div>
+
+    <script>
+        {{ store|safe }}
+        function newNotebook() {
+            let name = prompt("Please Enter a Name for Notebook:");
+            if(name != null) {
+                window.location.replace("/notes/newnotebook/?name=" + name + "&group=" + group);
+            }
+        }
+
+        function deleteGroup() {
+            if(confirm("Are you sure you want to delete this Group?")) {
+                window.location.replace("/notes/deletegroup?group=" + group);
+            }
+        }//end deleteNotebook
+    </script>
+{%  endblock %}

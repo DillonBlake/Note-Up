@@ -1,0 +1,25 @@
+.half_screen {
+    overflow-y: auto;
+}
+
+#input {
+    grid-row-start: 6;
+    grid-row-end: 22;
+    background-color: rgb(206, 186, 71);
+}
+
+#output {
+    grid-row-start: 23;
+    grid-row-end: 40;
+    background-color: white;
+}
+
+#btns {
+    grid-row-start: 3;
+    grid-row-end: 4;
+}
+
+#notename {
+    grid-row-start: 2;
+    grid-row-end: 3;
+}

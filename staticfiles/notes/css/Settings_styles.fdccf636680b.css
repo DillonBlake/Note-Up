@@ -1,0 +1,24 @@
+
+.settings {
+    grid-row-start: 5;
+    grid-row-end: 38;
+    overflow-y: auto;
+}
+
+.save {
+    grid-row-start: 3;
+    grid-row-end: 4;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 25%;
+}
+
+.back {
+    grid-row-start: 4;
+    grid-row-end: 5;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 25%;
+}

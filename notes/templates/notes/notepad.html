@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+    
+{% block content %}  
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'notes/css/notepad_styles.css' %}" type="text/css" />
+    <script src="{% static 'notes/js/src/ace.js' %}" type="text/javascript" charset="utf-8"></script>
+    <script src="{% static 'notes/js/render.js' %}" type="text/javascript" charset="utf-8"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            inlineMath: [["$","$"],["\\(","\\)"]]
+            }
+        });
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML-full">
+    </script>
+
+    <style type="text/css" media="screen">
+        .code { 
+            width: 100%;
+            height: 200px;
+        }
+    </style>
+
+    <div id="notename">
+        <h1 id="name"></h1>
+    </div>
+    
+    <div id="btns">
+        <button onclick="back();">Back</button>
+        <button onclick="printOut();">Printer Version</button>
+        <button onclick="pushNotes();">Save</button>
+        <button onclick="rename();">Rename</button>
+        <button onclick="deleteNotebook();">Delete</button>
+        <button onclick="help();">Help</button>
+        <button onclick="settings();">Settings</button>
+        <a href="/accounts/logout/">
+            <button>Logout</button>
+        </a>
+    </div>
+
+    <textarea id="input" class="half_screen" rows="25" onclick="active();"></textarea>
+    <div id="output" class="half_screen"></div>
+
+    </body>
+
+    <script>
+
+        {{ store|safe }}
+
+        let dataUrl = "/notes/edit/?name=" + name + "&group=" + group;
+        let settingsUrl = "/notes/settingsdata";
+        let code = false;
+        let html_codes = {69: "\\(\\)"}; //this is the only latex code that has to be in the html dict
+
+        let latex_codes = {};
+        let activeEdit = true;
+        getSettings();
+
+        //this function is used to find if a location in within a latex equation
+        function inEquation(){
+            let doc = document.getElementById("input");
+            let start = doc.selectionStart;
+            let end = doc.selectionEnd;
+            let text = doc.value;
+            //trackers
+            let front = false;
+            let back = false;
+            //go through chars to search for equation markers to left of start
+            for(let i = start; i > 1; i--) {
+                let key = text.slice(i - 2, i);
+                if(key === "\\)") {
+                    return false;
+                } else if(key === "\\(") {
+                    front = true;
+                    break;
+                }//end if
+            }//end for
+
+            //go through chars to search for equation markers to right of end
+            for(let i = end; i < text.length - 1; i++) {
+                let key = text.slice(i, i + 3);
+                if(key === "\\(") {
+                    return false;
+                } else if(key === "\\)") {
+                    back = true;
+                    break;
+                } //end if
+            }//end for
+
+            return (front && back);
+        }
+
+        //this function loads the note data
+        function getNotes(){
+            let xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200) {
+                    if(this.responseText[0] === "{") {
+                        let data = JSON.parse(this.responseText);
+                        codeContents = data["code"];
+                        //fill page and render
+                        document.getElementById("input").value = data["input"];
+                        render(document.getElementById("input").value);
+                    } else {
+                        alert(this.responseText);
+                        window.location.replace("/accounts/login")
+                    }
+                }
+            }; //end ready state change 
+            xhr.open("GET", dataUrl, true);
+            xhr.send();
+        }//end getNotes
+
+        //post the notes to the server to save
+        function pushNotes() {
+            let data = {};
+            data["input"] = document.getElementById("input").value;
+            //remove unwanted values from codeContents and add rest to dict
+            let codeContentsUpdated = {};
+            let editors = Object.keys(codeContents);
+            for(let i = 0; i < editors.length; i++) {
+                let key = editors[i];
+                let val = codeContents[key];
+                //check if empty
+                if(val != "") {
+                    codeContentsUpdated[key] = val;
+                }
+            }
+            data["code"] = codeContentsUpdated
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", dataUrl, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.send(JSON.stringify(data));
+        }//end pushNotes
+
+        //load the settings from backend
+        function getSettings(){
+            let xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200) {
+                    let data = JSON.parse(this.responseText);
+                    //load latex settings
+                    let latex_list = data["latex"];
+                    for(let i = 0; i < latex_list.length; i++) {
+                        let code = latex_list[i]["Code"];
+                        let val = latex_list[i]["Latex"];
+                        latex_codes[code] = val
+                    }
+                    //load html settings
+                    let html_list = data["html"];
+                    for(let i = 0; i < html_list.length; i++) {
+                        let code = html_list[i]["Code"];
+                        let val = html_list[i]["HTML"];
+                        html_codes[code] = val;
+                    }
+                }
+            }; //end ready state change 
+            xhr.open("GET", settingsUrl, true);
+            xhr.send();
+        }//end getNotes
+
+        //toggle active
+        function active() {
+            activeEdit = true;
+        }
+
+        function enclose(tag) {
+            //control vars
+            let input = document.getElementById("input");
+            let start = input.selectionStart;
+            let end = input.selectionEnd;
+
+            //chunk the text
+            let before = input.value.slice(0, start);
+            let after = input.value.slice(end);
+            let middle = input.value.slice(start, end);
+
+            if (tag.slice(0, 1) === "<") { //if html tag, enclose selected text inside
+                let endTag = "</" + tag.slice(1).split(">")[0] + ">";
+                let length = tag.length * 2 + 1 + middle.length;
+                input.value = before + tag + middle + endTag + after;
+                document.getElementById("input").selectionEnd = start + length;
+            } else if ((end - start) === 0) { //if latex, write latex
+                input.value = before + tag + after;
+                let length = tag.length;
+                if(tag === html_codes[69]) {
+                    document.getElementById("input").selectionEnd = start + 2;
+                } else {
+                    document.getElementById("input").selectionEnd = start + length;
+                }
+            } //end check tag or latex
+        }
+
+        //the bellow functions are linked to buttons
+
+        //open printable page
+        function printOut() {
+            let html = document.documentElement.innerHTML;
+            let win = window.open();
+            win.location.replace("/notes/printable/?name=" + name + "&group=" + group);
+        }
+
+        function deleteNotebook() {
+            if(confirm("Are you sure you want to delete this notebook?")) {
+                window.location.replace("/notes/deletenotebook/?name=" + name + "&group=" + group);
+            }
+        }//end deleteNotebook
+
+        function back() {
+            pushNotes();
+            window.location.replace("/notes/menu/?group=" + group);
+        }//end back
+
+        function help() {
+            pushNotes();
+            window.location.replace("/notes/help/?name=" + name + "&group=" + group);
+        }
+
+        function rename() {
+            let newName = prompt("Please Enter a New Name for Notebook:");
+            if(newName != null) {
+                let xhr = new XMLHttpRequest();
+                let renameUrl = "/notes/rename/?name=" + name + "&new=" + newName + "&group=" + group;
+                xhr.onreadystatechange = function() {
+                    if(this.readyState === 4 && this.status === 200) {
+                        name = newName;
+                        document.getElementById("name").innerHTML = name;
+                    }
+                }; //end ready state change 
+                xhr.open("GET", renameUrl, true);
+                xhr.send();
+            }//end if new name
+        }//end rename
+
+        function settings() {
+            let current = window.location.href;
+            window.location.replace("/notes/settings/?name=" + name + "&group=" + group);
+        }
+
+        //the bellow code is not a fucntion and will always run to setup page
+        
+        getNotes();
+        document.getElementById("name").innerHTML = name;
+
+        document.getElementById("input").addEventListener("blur", function () {
+            activeEdit = false;
+        });
+
+        //listen for keys
+        document.addEventListener('keyup', function(event) {
+            event.preventDefault();
+            saveCode();
+            if(activeEdit) {
+                //chekc if it is a shortcut
+                if(!event.ctrlKey || !event.altKey) {
+                    code = false;
+                }
+
+                //check whether within an equation
+                if(code){
+                    if(inEquation()) {
+                        enclose(latex_codes[event.keyCode]);
+                    } else {
+                        enclose(html_codes[event.keyCode]);
+                    }
+                }
+
+                render(document.getElementById("input").value);
+            }
+            //scroll to bottom
+            let output = document.getElementById("output");
+            
+            output.scrollTop = output.scrollHeight;
+        });
+
+        //set shortcut code toggle to true
+        document.addEventListener('keydown', function(event) {
+            if(activeEdit && event.ctrlKey && event.altKey) {
+                code = true;
+            }
+        });
+
+        
+    </script>
+
+{% endblock %}

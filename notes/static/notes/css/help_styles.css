@@ -1,0 +1,10 @@
+
+.next_btn {
+    grid-row-start: 2;
+    grid-row-end: 3;
+}
+
+.info {
+    grid-row-start: 3;
+    grid-row-end: 39;
+}

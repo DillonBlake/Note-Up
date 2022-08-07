@@ -1,0 +1,24 @@
+﻿Letter,Code,HTML
+A,65,
+C,67,"<input type=""checkbox"">"
+D,68,<b>
+G,71,"<mark style=""background-color:green;"">"
+H,72,<h1>
+I,73,<h2>
+J,74,<h3>
+K,75,<h4>
+L,76,<h5>
+M,77,<h6>
+N,78,
+O,79,"<mark style=""background-color:orange;"">"
+P,80,
+Q,81,
+R,82,
+S,83,
+T,84,
+U,85,
+V,86,
+W,87,"<mark style=""background-color:blue; color:white;"">"
+X,88,
+Y,89,<mark>
+Z,90,

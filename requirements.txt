@@ -1,0 +1,5 @@
+django
+whitenoise
+django-allauth
+psycopg2-binary
+pytz

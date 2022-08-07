@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'notes/css/menu_styles.css' %}" type="text/css" />
+    <div class="controls">
+        <h1 class="center">Your Groups:</h1>
+        <a class="center space" href="/accounts/logout/">
+            <button>Logout</button>
+        </a>
+        <div class="center space">
+            <button onclick="newGroup();">New Group</button>
+        </div>
+    </div>
+
+    <div class="scroller">
+        {% if groups %}
+            {% for group in groups %}
+                <img class="img_center space" onclick="window.location.replace('/notes/menu/?group={{ group.name }}');" src="{% static 'images/folder.png' %}">
+                <p class="center space">{{ group.name }}</p>
+            {% endfor %}
+        {% else %}
+            <p class="center">No Groups</p>
+        {% endif %}
+    </div>
+
+    <script>
+
+        function newGroup() {
+            let name = prompt("Please Enter a Name for Group:");
+            if(name != null) {
+                window.location.replace("/notes/newgroup/?name=" + name);
+            }
+        }
+    </script>
+{%  endblock %}

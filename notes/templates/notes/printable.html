@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        {% load static %}
+        <title>EZ Note</title>
+        <script src="{% static 'notes/js/src/ace.js' %}" type="text/javascript" charset="utf-8"></script>
+        <script src="{% static 'notes/js/render.js' %}" type="text/javascript" charset="utf-8"></script>
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+              tex2jax: {
+                inlineMath: [["$","$"],["\\(","\\)"]]
+              }
+            });
+        </script>
+        <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML-full">
+        </script>
+
+        <style type="text/css" media="screen">
+            .code { 
+                width: 100%;
+                height: 200px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="output"></div>
+    </body>
+
+    <script>
+
+    {{ store|safe }}
+
+    let dataUrl = "/notes/edit/?name=" + name + "&group=" + group;
+    let text = "";
+
+    function getNotes(){
+        let xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if(this.readyState == 4 && this.status == 200) {
+                let data = JSON.parse(this.responseText);
+                codeContents = data["code"];
+                text = data["input"];
+                render(text);
+            }
+        }; //end ready state change
+        xhr.open("GET", dataUrl, true);
+        xhr.send();
+    }//end getNotes
+    
+    //Load the notes to page
+    getNotes();
+
+    </script>
+</html>

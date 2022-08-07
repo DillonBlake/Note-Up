@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% load socialaccount %}
+
+{% block content %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'notes/css/Settings_styles.css' %}" type="text/css" />
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            inlineMath: [["$","$"],["\\(","\\)"]]
+            }
+        });
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML-full">
+    </script>
+
+    <button class="save" onclick="saveSettings();">Save</button>
+    <button class="back" onclick="back();">Back</button>
+
+    <div class="settings">
+        <h1 class="center">Latex Codes</h1>
+            <div id="latexIn">
+                {% if latex %}
+                    {% for code in latex %}
+                        <p class="center">{{ code.Letter }}: \( {{ code.Latex }} \)</p> 
+                        <div class="center">
+                            <input type="text" id="latex_{{ code.Letter }}_{{ code.Code }}" value="{{ code.Latex }}">
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="center">Error Loading Latex</p>
+                {% endif %}
+            </div>
+        <h1 class="center">HTML Codes</h1>
+        <div id="htmlIn">
+            {% if html %}
+                {% for code in html %}
+                    <p class="center">{{ code.Letter }}:</p> 
+                    <div class="center">
+                        <input type="text" id="html_{{ code.Letter }}_{{ code.Code }}" value="{{ code.HTML }}">
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="center">Error Loading HTML</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+
+        let settingsUrl = "/notes/settingsdata/";
+
+        function saveSettings() {
+            //Setup vars
+            let data = {};
+            let latex = [];
+            let html = [];
+            let latexDiv = document.getElementById("latexIn");
+            let latexIns = latexDiv.getElementsByTagName("input");
+            //Add all the latex settings to a list
+            for(let i = 0; i < latexIns.length; i++) {
+                let splits = latexIns[i].id.split("_");
+                let code = splits[2];
+                let letter = splits[1];
+                let add = {};
+                add["Letter"] = letter;
+                add["Code"] = code;
+                add["Latex"] = latexIns[i].value;
+                latex.push(add);
+            }
+            let htmlDiv = document.getElementById("htmlIn");
+            let htmlIns = htmlDiv.getElementsByTagName("input");
+            //Add all the html settings to a list
+            for(let i = 0; i < htmlIns.length; i++) {
+                let splits = htmlIns[i].id.split("_");
+                let code = splits[2];
+                let letter = splits[1];
+                let add = {};
+                add["Letter"] = letter;
+                add["Code"] = code;
+                add["HTML"] = htmlIns[i].value;
+                html.push(add);
+            }
+            //Combine individual list dict
+            data["latex"] = latex;
+            data["html"] = html;
+            //Post the data dict as json
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", settingsUrl, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.send(JSON.stringify(data));
+        }//end saveSettings
+
+        function back() {
+            window.location.replace("/notes/notepad/?name={{ notebook}}&group={{ group }}");
+        }
+    </script>
+
+{% endblock %}

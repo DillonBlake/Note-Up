@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'notes/css/help_styles.css' %}" type="text/css" />   
+    <div class="center">
+        <button class="next_btn" onclick="next();">{{ next_label }}</button>
+    </div>
+
+    <div class="info">
+        <h1>The Basics</h1>
+        <p>
+            Note Up is a dynamic note taking platform that integrates HTML formatting, Latex typesetting, and integrated editors for code and spreadsheets all in one place. 
+            The platform also includes various shortcuts and customizable key patterns. The notes can also be printed and saved as a PDF to be used locally.
+        </p>
+        <h1>Key Board Shortcuts</h1>
+        <p>
+            There are various out of box keyboard shortcuts for both HTML and Latex. These can be used by holding Control and Alt while selecting a key. 
+            If you are within a Latex frame like \( Latex \) the Latex the set of Latex shortcuts will be used. Otherwise, the HTML shortcuts will be uses. 
+            A Latex frame can be placed with Control + Alt + e. For the HTML shortcuts, the tags can be placed around text by highlighting the text then
+            applying the shortcut. Both the Latex and HTML shortcuts can be customized in the settings page.
+        </p>
+        <h1>Other Shortcuts</h1>
+        <p>
+            <ul>
+                <li>* places a bullet point. Bullet points can be nested with more *'s</li>
+                <li>img:URL places an image from the specified url></li>
+                <li>cod:LANGUAGE,ID places a code editor of the specified language and tracks the code with the id given</li>
+            </ul>
+        </p>
+    </div>
+
+    <script>
+        function next() {
+            window.location.replace("{{ next_url|safe }}");
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,14 @@
+
+.settings {
+    grid-row-start: 3;
+    grid-row-end: 38;
+    overflow-y: auto;
+}
+
+label {
+    width: 100px;
+}
+
+input {
+    width: 200px;
+}
